@@ -64,6 +64,16 @@ module Interpreter.Eval
         | Not a -> apply (boolEval a st) (Some false) (fun x y -> not x)
 
     let rec mergeString (e: list<aexpr>) (s: string) (st: state) : string option = 
+        match e with 
+        | [] -> Some s
+        | xs :: x -> 
+                match arithEval xs st with
+                | Some y -> 
+                       match split s "%" with 
+                       | zs :: z -> mergeString x ((zs :: string(y) :: z ) |> List.fold(fun s acc -> s + acc) "") st
+                       | _ -> None
+                | None -> None
+        (*
         let lstInt = (e |> List.fold (fun acc curr -> 
                 match arithEval curr st with
                 | Some x -> string(x) :: acc
@@ -73,7 +83,7 @@ module Interpreter.Eval
         | true -> 
                 let (x,_) = (split s "%" |> List.fold (fun (s: string, acc: int) curr -> if not(curr = "") then (s + lstInt.[acc] + curr, acc + 1) else (s, acc)) ("",0))
                 Some x
-        | false -> None
+        | false -> None *)
                 
     let rec stmntEval s st = 
         match s with 
