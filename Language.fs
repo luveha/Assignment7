@@ -10,8 +10,6 @@ type error =
     | NegativeMemoryAllocated of int
     | MemoryNotAllocated of int
     | IllFormedPrint of string * int list
-    | UnknownFunction of string
-    | InvalidArity of string * int * int
 
 type aexpr =
     | Num of int
@@ -22,7 +20,6 @@ type aexpr =
     | Mod of aexpr * aexpr
     | MemRead of aexpr
     | Cond of bexpr * aexpr * aexpr
-    | FunctionCall of string * aexpr list
     | Random
     | Read
     
@@ -62,8 +59,7 @@ type stmnt =
     | Alloc of string * aexpr
     | MemWrite of aexpr * aexpr
     | Free of aexpr * aexpr
-    | Print of aexpr list * string
-    | Return of aexpr
+    | Print of aexpr list * string 
     
 let (/>) s1 s2 = Seq(s1, s2)
 let IT(b, c) = If(b, c, Skip)
@@ -72,5 +68,3 @@ let For(var, init, guard, step, body) =
     Declare var />
     (var .<-. init) />
     While(guard, body /> step)
-    
-type program = Map<string, string list * stmnt>
