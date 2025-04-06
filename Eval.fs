@@ -2,7 +2,8 @@ module Interpreter.Eval
 
     open Result
     open Language
-    open State
+    open Interpreter.StateMonad
+
 
     let readFromConsole () = System.Console.ReadLine().Trim()
     let tryParseInt (str : string) = System.Int32.TryParse str
@@ -21,108 +22,91 @@ module Interpreter.Eval
 
     let split (s1 : string) (s2 : string) = s2 |> s1.Split |> Array.toList
 
-    let rec arithEval a st = 
+    let rec arithEval (a: aexpr) : int stateMonad = 
         match a with
-        | Num n -> Some n 
-        | Var v when st.m.ContainsKey v -> getVar v st
+        | Num n -> ret n  
+        | Var v -> getVar v //when st.m.ContainsKey v
         | Add (x,y) ->
-                apply (arithEval x st) (arithEval y st) (fun x y -> x+y)
+                arithEval x >>= (fun intLeft -> arithEval y >>= (fun intRight -> ret (intLeft + intRight))) 
         | Mul (x,y) -> 
-                apply (arithEval x st) (arithEval y st) (fun x y -> x*y)
-        | Div (x,y) | Mod (x,y)-> 
-                match arithEval y st with
-                | Some yInt when not (yInt = 0) -> 
-                        match a with
-                        | Div _ -> apply (arithEval x st) (arithEval y st) (fun x y -> x/y)
-                        | _ -> apply (arithEval x st) (arithEval y st) (fun x y -> x%y)
-                | _ -> None
+                arithEval x >>= (fun intLeft -> arithEval y >>= (fun intRight -> ret (intLeft * intRight))) 
+        | Div (x,y) ->
+                arithEval y >>= (fun denom -> 
+                        match denom with
+                        | 0 -> fail
+                        | _ ->  arithEval x >>= (fun num -> ret (num / denom))
+                        )
+        | Mod (x,y) -> fail
         | MemRead (e1) -> 
-                match (arithEval e1 st) with 
-                | Some n ->
-                        match State.getMem n st with 
-                        | Some x -> Some x
-                        | _ -> None
-                | None -> None
-        | Random -> Some (st.rng.Next())
-        | Read -> arithEval (Num (readInt ())) st
+                (arithEval e1) >>= (fun value -> 
+                        getMem value
+                        )
+        | Random -> random
+        | Read -> arithEval (Num (readInt ()))
         | Cond(b, a1, a2) -> 
-                match boolEval b st with
-                | Some true -> arithEval a1  st
-                | Some false -> arithEval a2 st
-                | _ -> None                
-        | _ -> None
+                boolEval b >>= ( fun bBool ->
+                match bBool with
+                | true -> arithEval a1
+                | false -> arithEval a2
+                )           
+        | _ -> fail 
 
-    and boolEval b st = 
+    and boolEval (b: bexpr) : bool stateMonad = 
         match b with
-        | TT -> Some true
+        | TT -> ret true
         | Eq (a,c)-> 
-                apply (arithEval a st) (arithEval c st) (fun x y -> x = y)
+                arithEval a >>= (fun intLeft -> arithEval c >>= (fun intRight -> ret (intLeft = intRight)))
         | Lt (a,c) -> 
-                apply (arithEval a st) (arithEval c st) (fun x y -> x < y)
+                arithEval a >>= (fun intLeft -> arithEval c >>= (fun intRight -> ret (intLeft < intRight)))
         | Conj (a,c) -> 
-                apply (boolEval a st) (boolEval c st) (fun x y -> x && y)
-        | Not a -> apply (boolEval a st) (Some false) (fun x y -> not x)
+                boolEval a >>= (fun boolLeft -> boolEval c >>= (fun boolRight -> ret (boolLeft && boolRight)))
+        | Not a -> 
+                boolEval a >>= (fun bBool -> ret (not (bBool)))
 
-    let rec mergeString (e: list<aexpr>) (s: string) (st: state) : string option = 
+    let rec mergeString (e: list<aexpr>) (s: string) : string stateMonad = 
         match e with 
-        | [] -> Some s
+        | [] -> ret ("")
         | xs :: x -> 
-                match arithEval xs st with
+                ret ("")
+                (*
+                match arithEval xs with
                 | Some y -> 
                        match split s "%" with 
                        | zs :: z -> mergeString x ((zs :: string(y) :: z ) |> List.fold(fun s acc -> s + acc) "") st
                        | _ -> None
-                | None -> None
-        (*
-        let lstInt = (e |> List.fold (fun acc curr -> 
-                match arithEval curr st with
-                | Some x -> string(x) :: acc
-                | None -> acc
-        ) [] |> List.rev) //Now list<int> instead of list<aexpr>        
-        match lstInt.Length = e.Length with
-        | true -> 
-                let (x,_) = (split s "%" |> List.fold (fun (s: string, acc: int) curr -> if not(curr = "") then (s + lstInt.[acc] + curr, acc + 1) else (s, acc)) ("",0))
-                Some x
-        | false -> None *)
+                | None -> None*)
                 
-    let rec stmntEval s st = 
+    let rec stmntEval s : 'a stateMonad = 
         match s with 
-        | Skip -> Some st
-        | Declare s -> declare s st
+        | Skip -> ret ()
+        | Declare s -> declare s
         | Assign(v,a) -> 
-                match arithEval a st with 
-                | Some x -> setVar v x st
-                | None -> None
+                arithEval a >>= (fun value -> setVar v value )
         | Seq (s1,s2) ->
-                match stmntEval s1 st with
-                | Some st' -> 
-                        match stmntEval s2 st' with
-                        | None -> None
-                        | st'' -> st'' 
-                | _ -> None 
+                stmntEval s1 >>>= stmntEval s2
         | If (gaurd, s1, s2) -> 
-                match boolEval gaurd st with
-                | Some true -> stmntEval s1 st
-                | Some false -> stmntEval s2 st
-                | None -> None
+                boolEval gaurd >>= (
+                        fun bool ->
+                        match bool with
+                        | true -> stmntEval s1
+                        | false -> stmntEval s2
+                )
         | While (gaurd, s') -> 
-                match boolEval gaurd st with
-                | Some true -> 
-                        match stmntEval s' st with
-                        | Some st'' -> stmntEval (While (gaurd, s')) st''
-                        | None -> None
-                | Some false -> Some st
-                | None -> None
-        | Alloc (x,e) -> arithEval e st |> Option.bind (fun i -> State.alloc x i st) 
+                boolEval gaurd >>= ( fun bBool ->
+                        match bBool with
+                        | true -> stmntEval s' >>>= stmntEval s' 
+                        | false -> ret ()
+                )
+        | Alloc (x,e) -> 
+                arithEval e >>= (fun value -> alloc x value)
         | Free (e1,e2) -> 
-                (arithEval e1 st) |> Option.bind (fun eVal1 -> ((arithEval e2 st) |> Option.bind(fun eVal2 -> State.free eVal1 eVal2 st)))
+                arithEval e1 >>= (fun ptr -> arithEval e2 >>= (fun value -> free ptr value))
         | MemWrite(e1,e2) -> 
-                (arithEval e1 st) |> Option.bind (fun eVal1 -> ((arithEval e2 st) |> Option.bind(fun eVal2 -> State.setMem eVal1 eVal2 st)))
+                arithEval e1 >>= (fun ptr -> arithEval e2 >>= (fun value -> setMem ptr value))
         | Print(es,s) -> 
-                match mergeString es s st with 
-                | Some s -> 
-                        printf ("%s") s
-                        Some st
-                | _ -> None
-
+                match mergeString es s with 
+                | _ -> 
+                        ret ()
+                | _ -> fail
+        | _ -> fail
     

@@ -11,7 +11,7 @@ module Interpreter.State
         | _ -> false
 
     type state = {m: Map<string,int>; mem: Memory.memory; rng: System.Random}
-    let mkState (memSize: int) (ossed: int option)= 
+    let mkState (memSize: int) (ossed: int option) (p: program) = 
         match ossed with
         | Some x -> 
             {m = Map.empty<string,int>; mem = Memory.empty memSize; rng = System.Random(x)} 
@@ -22,7 +22,7 @@ module Interpreter.State
         match st.m with
         | m when m.ContainsKey x -> None
         | _ when not (validVariableName x) || reservedVariableName x -> None
-        | _ -> Some {m = st.m.Add(x,0); mem = st.mem; rng = st.rng}
+        | _ -> Some {m = st.m.Add(x,0); mem = {m = st.mem.m; next=st.mem.next+1}; rng = st.rng}
 
     let getVar x st = 
         match st.m.ContainsKey x with
@@ -38,6 +38,9 @@ module Interpreter.State
     
     let push _ = failwith "not implemented"
     let pop _ = failwith "not implemented"
+
+    let pushFrame _ = failwith "not implementd"
+    let popFrame _ = failwith "not implemented"
         
     let alloc (x: string) (size: int) (st: state) = 
         match (Memory.alloc 1 st.mem) with

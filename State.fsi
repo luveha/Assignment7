@@ -2,8 +2,8 @@ module Interpreter.State
     open Language
     
     type state = {m: Map<string,int>; mem: Memory.memory; rng: System.Random}
-    val mkState : int -> int option -> state
-
+    val mkState : int -> int option -> program -> state
+    
     val declare : string -> state -> state option
     val getVar : string -> state -> int option
     val setVar: string -> int -> state -> state option

@@ -1,10 +1,10 @@
 {
   "version": 2,
-  "dgSpecHash": "BaCdTu/6JC8=",
+  "dgSpecHash": "BSdL+PfulMyXrLvzoCMRhHUvsBxba4KDWGsc78cHajjwhtT5K/NQKUEnhapupvTMBPaOIkTSISb/JPO51xXxVA==",
   "success": true,
-  "projectFilePath": "/Users/jebe/Library/CloudStorage/OneDrive-ITU/teaching/courses/FP2025/Assignments/Assignment7/Assignment7.fsproj",
+  "projectFilePath": "/home/lucas/Projects/fSharp/Assignment7/Assignment7.fsproj",
   "expectedPackageFiles": [
-    "/Users/jebe/.nuget/packages/fsharp.core/9.0.100/fsharp.core.9.0.100.nupkg.sha512"
+    "/home/lucas/.nuget/packages/fsharp.core/7.0.403/fsharp.core.7.0.403.nupkg.sha512"
   ],
   "logs": []
 }

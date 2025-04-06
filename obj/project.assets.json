@@ -1,8 +1,8 @@
 {
   "version": 3,
   "targets": {
-    "net9.0": {
-      "FSharp.Core/9.0.100": {
+    "net7.0": {
+      "FSharp.Core/7.0.403": {
         "type": "package",
         "compile": {
           "lib/netstandard2.1/FSharp.Core.dll": {
@@ -59,15 +59,15 @@
     }
   },
   "libraries": {
-    "FSharp.Core/9.0.100": {
-      "sha512": "ye8yagHGsH08H2Twno5GRWkSbrMtxK/SWiHuPcF+3nODpW65/VJ8RO0aWxp8n9+KQbmahg90wAEL3TEXjF0r6A==",
+    "FSharp.Core/7.0.403": {
+      "sha512": "QYCYEhAj3GccfPdK6EDZu3Yz7I8p75nVHmNnV/9duxTAcqmstbG87waXDC4LBz0/8Jb0teb0ry/xLM2pjk/UAw==",
       "type": "package",
-      "path": "fsharp.core/9.0.100",
+      "path": "fsharp.core/7.0.403",
       "files": [
         ".nupkg.metadata",
         ".signature.p7s",
         "Icon.png",
-        "fsharp.core.9.0.100.nupkg.sha512",
+        "fsharp.core.7.0.403.nupkg.sha512",
         "fsharp.core.nuspec",
         "lib/netstandard2.0/FSharp.Core.dll",
         "lib/netstandard2.0/FSharp.Core.xml",
@@ -103,54 +103,47 @@
     }
   },
   "projectFileDependencyGroups": {
-    "net9.0": [
-      "FSharp.Core >= 9.0.100"
+    "net7.0": [
+      "FSharp.Core >= 7.0.403"
     ]
   },
   "packageFolders": {
-    "/Users/jebe/.nuget/packages/": {}
+    "/home/lucas/.nuget/packages/": {}
   },
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/jebe/Library/CloudStorage/OneDrive-ITU/teaching/courses/FP2025/Assignments/Assignment7/Assignment7.fsproj",
+      "projectUniqueName": "/home/lucas/Projects/fSharp/Assignment7/Assignment7.fsproj",
       "projectName": "Assignment7",
-      "projectPath": "/Users/jebe/Library/CloudStorage/OneDrive-ITU/teaching/courses/FP2025/Assignments/Assignment7/Assignment7.fsproj",
-      "packagesPath": "/Users/jebe/.nuget/packages/",
-      "outputPath": "/Users/jebe/Library/CloudStorage/OneDrive-ITU/teaching/courses/FP2025/Assignments/Assignment7/obj/",
+      "projectPath": "/home/lucas/Projects/fSharp/Assignment7/Assignment7.fsproj",
+      "packagesPath": "/home/lucas/.nuget/packages/",
+      "outputPath": "/home/lucas/Projects/fSharp/Assignment7/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
-        "/Users/jebe/.nuget/NuGet/NuGet.Config"
+        "/home/lucas/.nuget/NuGet/NuGet.Config"
       ],
       "originalTargetFrameworks": [
-        "net9.0"
+        "net7.0"
       ],
       "sources": {
-        "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/library-packs": {},
-        "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/sdk/9.0.101/FSharp/library-packs": {},
+        "/home/lucas/dotnet/sdk/7.0.410/FSharp/library-packs": {},
         "https://api.nuget.org/v3/index.json": {}
       },
       "frameworks": {
-        "net9.0": {
-          "targetAlias": "net9.0",
+        "net7.0": {
+          "targetAlias": "net7.0",
           "projectReferences": {}
         }
-      },
-      "restoreAuditProperties": {
-        "enableAudit": "true",
-        "auditLevel": "low",
-        "auditMode": "direct"
-      },
-      "SdkAnalysisLevel": "9.0.100"
+      }
     },
     "frameworks": {
-      "net9.0": {
-        "targetAlias": "net9.0",
+      "net7.0": {
+        "targetAlias": "net7.0",
         "dependencies": {
           "FSharp.Core": {
             "include": "Runtime, Compile, Build, Native, Analyzers, BuildTransitive",
             "target": "Package",
-            "version": "[9.0.100, )",
+            "version": "[7.0.403, )",
             "generatePathProperty": true
           }
         },
@@ -170,7 +163,7 @@
             "privateAssets": "all"
           }
         },
-        "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet/9.0.101/libexec/sdk/9.0.101/PortableRuntimeIdentifierGraph.json"
+        "runtimeIdentifierGraphPath": "/home/lucas/dotnet/sdk/7.0.410/RuntimeIdentifierGraph.json"
       }
     }
   }
