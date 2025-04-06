@@ -27,16 +27,25 @@ module Interpreter.Eval
         | Num n -> ret n  
         | Var v -> getVar v //when st.m.ContainsKey v
         | Add (x,y) ->
-                arithEval x >>= (fun intLeft -> arithEval y >>= (fun intRight -> ret (intLeft + intRight))) 
+                arithEval x >>= (fun intLeft -> 
+                                arithEval y >>= (fun intRight -> 
+                                ret (intLeft + intRight))) 
         | Mul (x,y) -> 
-                arithEval x >>= (fun intLeft -> arithEval y >>= (fun intRight -> ret (intLeft * intRight))) 
+                arithEval x >>= (fun intLeft -> 
+                                arithEval y >>= (fun intRight -> 
+                                ret (intLeft * intRight))) 
         | Div (x,y) ->
                 arithEval y >>= (fun denom -> 
                         match denom with
                         | 0 -> fail
                         | _ ->  arithEval x >>= (fun num -> ret (num / denom))
                         )
-        | Mod (x,y) -> fail
+        | Mod (x,y) -> 
+                arithEval y >>= (fun denom -> 
+                        match denom with
+                        | 0 -> fail
+                        | _ ->  arithEval x >>= (fun num -> ret (num % denom))
+                        )
         | MemRead (e1) -> 
                 (arithEval e1) >>= (fun value -> 
                         getMem value
@@ -94,7 +103,7 @@ module Interpreter.Eval
         | While (gaurd, s') -> 
                 boolEval gaurd >>= ( fun bBool ->
                         match bBool with
-                        | true -> stmntEval s' >>>= (stmntEval(While (gaurd,s')))
+                        | true -> stmntEval s' >>= (fun _ -> stmntEval(While (gaurd,s')))
                         | false -> ret()
                 )
         (*

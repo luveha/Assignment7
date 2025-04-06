@@ -12,4 +12,21 @@ open Interpreter.StateMonad
 // Uncomment the program you want to run
 
 //runProgram guessANumber
-printf("%A \n") ((declare "x" >>>= alloc "x" 10 >>>= getVar "x" >>= (fun ptr -> setMem ptr 42 >>>= free (ptr + 1) 5 >>>= getMem ptr)) |> evalState (mkState 100 None Map.empty))
+
+let memErr x =
+    Declare "ptr" />
+    Alloc("ptr", Num x) />
+    Declare "x" />
+    ("x" .<-. Num x) />
+    While(Num 0 .<. Var "x",
+            MemWrite(Var "ptr" .+. (Var "x" .-. Num 1), Var "x") />
+            ("x" .<-. Var "x" .-. Num 1)) />
+    ("x" .<-. Num (x - 1)) />
+    Declare "result" />
+    ("result" .<-. Num 1) />
+    While(Num 0 .<=. Var "x",
+            ("result" .<-. Var "result" .*. MemRead(Var "ptr" .+. Var "x")) />
+            ("x"      .<-. Var "x" .-. Num 1)) />
+    Free(Var "ptr", Num (x + 1))
+
+printf("%A \n") ((stmntEval (memErr 5) >>>= getVar "result") |>evalState (mkState 100 None Map.empty))

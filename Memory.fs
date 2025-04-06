@@ -19,11 +19,12 @@ module Interpreter.Memory
         | _ -> None
     let free (ptr: int) (size: int) (mem: memory) = 
         match (ptr + size) with
-        | x when x < mem.next -> 
+        | x when x <= mem.next && 
+                [ptr .. x - 1] |> List.forall (fun addr -> Map.containsKey addr mem.m) -> 
             Some(
                 {m = 
                     (
-                    [ptr .. x] |> List.fold (fun map input -> Map.remove input map) mem.m
+                    [ptr .. x - 1] |> List.fold (fun map input -> Map.remove input map) mem.m
                 );
                 next = mem.next
                 }
