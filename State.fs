@@ -43,7 +43,7 @@ module Interpreter.State
     let popFrame _ = failwith "not implemented"
         
     let alloc (x: string) (size: int) (st: state) = 
-        match (Memory.alloc 1 st.mem) with
+        match (Memory.alloc size st.mem) with
         | Some(mem, next) -> 
             Some {m=st.m.Add(x,next);mem=mem; rng=st.rng}
         | None -> None

@@ -23,7 +23,7 @@ module Interpreter.Memory
             Some(
                 {m = 
                     (
-                    [mem.next .. mem.next+size-1] |> List.fold (fun map input -> Map.remove input map) mem.m
+                    [ptr .. x] |> List.fold (fun map input -> Map.remove input map) mem.m
                 );
                 next = mem.next
                 }
