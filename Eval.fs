@@ -94,9 +94,19 @@ module Interpreter.Eval
         | While (gaurd, s') -> 
                 boolEval gaurd >>= ( fun bBool ->
                         match bBool with
-                        | true -> stmntEval s' >>>= stmntEval s' 
-                        | false -> ret ()
+                        | true -> stmntEval s' >>>= (stmntEval(While (gaurd,s')))
+                        | false -> ret()
                 )
+        (*
+        | While (gaurd, s') -> 
+                match boolEval gaurd st with
+                | Some true -> 
+                        match stmntEval s' st with
+                        | Some st'' -> stmntEval (While (gaurd, s')) st''
+                        | None -> None
+                | Some false -> Some st
+                | None -> None
+        *)
         | Alloc (x,e) -> 
                 arithEval e >>= (fun value -> alloc x value)
         | Free (e1,e2) -> 
