@@ -74,16 +74,13 @@ module Interpreter.Eval
 
     let rec mergeString (e: list<aexpr>) (s: string) : string stateMonad = 
         match e with 
-        | [] -> ret ("")
+        | [] -> ret s
         | xs :: x -> 
-                ret ("")
-                (*
-                match arithEval xs with
-                | Some y -> 
-                       match split s "%" with 
-                       | zs :: z -> mergeString x ((zs :: string(y) :: z ) |> List.fold(fun s acc -> s + acc) "") st
-                       | _ -> None
-                | None -> None*)
+                arithEval xs >>= ( fun value ->
+                match split s "%" with 
+                | zs :: z -> mergeString x ((zs :: string(value) :: z ) |> List.fold(fun s acc -> s + acc) "")
+                | _ -> failwith ""
+                )
                 
     let rec stmntEval s : 'a stateMonad = 
         match s with 
@@ -124,8 +121,74 @@ module Interpreter.Eval
                 arithEval e1 >>= (fun ptr -> arithEval e2 >>= (fun value -> setMem ptr value))
         | Print(es,s) -> 
                 match mergeString es s with 
-                | _ -> 
+                | st -> st  >>= (fun printable -> 
+                        printf "%A" printable
                         ret ()
-                | _ -> fail
+                        )
         | _ -> fail
+
+    type StateBuilder() =  
+        member this.Bind(f, x) = (>>=) f x  
+        member this.Return(x) = ret x  
+        member this.ReturnFrom(x) = x  
+        member this.Combine(a, b) = a >>= (fun _ -> b) 
+      
+    let eval = StateBuilder()
     
+    let rec arithEval2 (a: aexpr) : int stateMonad =
+        eval {
+                match a with 
+                | Num n -> return n
+                | Var v -> return! getVar v
+                | Add(x,y) ->
+                        let! valLeft = arithEval2 x
+                        let! valRight = arithEval2 y
+                        return valLeft + valRight
+                | Mul (x,y) ->
+                        let! valLeft = arithEval2 x
+                        let! valRight = arithEval2 y
+                        return valLeft * valRight
+                | Div(x,y) ->
+                        let! num = arithEval2 x
+                        let! denom = arithEval2 y
+                        match denom with
+                        | z when z = 0 -> return! fail
+                        | z -> return (num/denom)
+                | Mod(x,y) ->
+                        let! num = arithEval2 x
+                        let! denom = arithEval2 y
+                        match denom with
+                        | z when z = 0 -> return! fail
+                        | z -> return (num%denom)
+                | MemRead(x) ->
+                        let! ptr = arithEval2 x
+                        return! getMem ptr
+                | Random -> return! random
+                | Read -> return! arithEval2 (Num (readInt ()))
+                | Cond(b,a1,a2) ->
+                        let! evalfed = boolEval2 b
+                        match evalfed with 
+                        | true -> return! arithEval2 a1
+                        | false -> return! arithEval2 a2
+                | _ -> return! fail
+        }
+    and boolEval2 (b: bexpr) : bool stateMonad =
+        eval {
+                match b with
+                | TT -> return true
+                | Eq (a,c)-> 
+                        let! evalLeft = arithEval2 a
+                        let! evalRight = arithEval2 c
+                        return (evalLeft = evalRight)
+                | Lt (a,c) ->
+                        let! evalLeft = arithEval2 a
+                        let! evalRight = arithEval2 c
+                        return (evalLeft < evalRight)
+                | Conj (a,c) ->
+                        let! evalLeft = boolEval2 a
+                        let! evalRight = boolEval2 c
+                        return (evalLeft && evalRight)
+                | Not a ->
+                        let! eval = boolEval2 a
+                        return (not(eval))
+        }
